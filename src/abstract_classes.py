@@ -5,7 +5,7 @@ class AbstractAPI(ABC):
     """ Абстрактный класс для работы с API """
 
     @abstractmethod
-    def get_vacancies(self, search_query: str, salary: str, area: str):
+    def get_vacancies(self):
         pass
 
 

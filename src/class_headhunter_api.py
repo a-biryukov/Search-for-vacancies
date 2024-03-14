@@ -6,30 +6,60 @@ from src.abstract_classes import AbstractAPI
 
 
 class HeadHunterAPI(AbstractAPI):
-    """ Класс для работы с API"""
+    """ Класс для работы с API """
 
-    def get_vacancies(self, search_query: str, salary: str, search_area: str):
-        """ Получение данных о вакансиях с hh.ru в формате JSON """
+    search_query: str
+    salary: str
+    search_area: str
+    only_with_salary: str
 
-        params = self.get_params(search_query, salary, search_area)
+    def __init__(self, search_query: str, salary: str, search_area: str, only_with_salary: str):
+        """
+        Метод для инициализации экземпляра класса. Задаем значения атрибутам экземпляра.
+        :param search_query: Поисковой запрос (название вакансии)
+        :param salary: Желаемая зарплата
+        :param search_area: Область поиска (Страна, область или город)
+        :param only_with_salary: Запрос вакансий только с зарплатой (true or false)
+        """
+        self.search_query = search_query
+        self.salary = salary
+        self.search_area = search_area.title()
+        if only_with_salary.lower() == "да":
+            self.only_with_salary = "false"
+        else:
+            self.only_with_salary = "true"
+
+    def get_vacancies(self) -> list:
+        """
+        Получение данных о вакансиях с hh.ru в формате JSON
+        :return: Список с информацией о вакансиях
+        """
+
+        params = self.get_params()
 
         url = "https://api.hh.ru/vacancies"
 
-        response = requests.get(url, params).json()
+        response = requests.get(url, params)
 
-        data = response.get("items")
+        data = response.json()
 
-        pages = response.get("pages")
-        if pages > 1:
+        vacancy_list = data.get("items")
+
+        pages = data.get("pages")
+
+        if pages is not None:
             for num in range(1, pages):
                 params["page"] = num
                 response = requests.get(url, params).json()
-                data.extend(response.get("items"))
+                vacancy_list.extend(response.get("items"))
 
-        return data
+        return vacancy_list
 
-    @staticmethod
-    def get_params(search_query: str, salary: str, search_area: str):
+    def get_params(self) -> dict:
+        """
+        Подготовка параметров для запроса вакансий с hh.ru
+        :return: Параметры для запроса
+        """
         current_file_path = os.path.abspath(__file__)
         parent_dir_path = os.path.dirname(os.path.dirname(current_file_path))
         file_path = os.path.join(parent_dir_path, "data", "areas.json")
@@ -37,20 +67,18 @@ class HeadHunterAPI(AbstractAPI):
         with open(file_path, "r", encoding="utf-8") as file:
             areas = json.load(file)
 
-            search_area = search_area.lower()
-
-            if areas.get(search_area):
-                area = areas.get(search_area)
+            if areas.get(self.search_area):
+                area = areas.get(self.search_area)
             else:
                 for k, v in areas.items():
-                    if search_area in k.lower():
+                    if self.search_area in k:
                         area = v
 
         params = {
-            "text": search_query,
+            "text": self.search_query,
             "per_page": "100",
-            "only_with_salary": "true",
-            "salary": salary,
+            "only_with_salary": self.only_with_salary,
+            "salary": self.salary,
             "area": area
         }
 
