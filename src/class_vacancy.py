@@ -7,6 +7,8 @@ class Vacancy:
     date: str
     area: str
 
+    number_of_vacancies = 0
+
     def __init__(self, name: str, url: str,  salary: dict, requirement: str, date: str, area: str):
         """
         Метод для инициализации экземпляра класса. Задаем значения атрибутам экземпляра.
@@ -24,6 +26,8 @@ class Vacancy:
         self.date = date
         self.area = area
 
+        Vacancy.number_of_vacancies += 1
+
     @classmethod
     def cast_to_object_list(cls, data: list) -> list:
         """
@@ -36,13 +40,17 @@ class Vacancy:
         for vacancy in data:
             name = vacancy.get("name")
             url = vacancy.get("alternate_url")
-            del vacancy.get("salary")["gross"]
-            salary = vacancy.get("salary")
             requirement = vacancy.get("snippet").get("requirement")
             date = vacancy.get("published_at")
             area = vacancy.get("area").get("name")
+            try:
+                del vacancy.get("salary")["gross"]
+            except TypeError:
+                continue
+            salary = vacancy.get("salary")
 
             vacancy_object = cls(name, url, salary, requirement, date, area)
             vacancy_objects.append(vacancy_object)
 
         return vacancy_objects
+
