@@ -40,9 +40,13 @@ class Vacancy:
         for vacancy in data:
             name = vacancy.get("name")
             url = vacancy.get("alternate_url")
-            requirement = vacancy.get("snippet").get("requirement")
             date = vacancy.get("published_at")
             area = vacancy.get("area").get("name")
+            req = vacancy.get("snippet").get("requirement")
+            try:
+                requirement = req.replace("<highlighttext>", "").replace("</highlighttext>", "")
+            except AttributeError:
+                requirement = "Требования не указаны"
             try:
                 del vacancy.get("salary")["gross"]
             except TypeError:
