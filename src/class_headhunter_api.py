@@ -35,7 +35,7 @@ class HeadHunterAPI(AbstractAPI):
         :return: Список с информацией о вакансиях
         """
 
-        params = self.get_params()
+        params = self.__get_params()
 
         url = "https://api.hh.ru/vacancies"
 
@@ -55,11 +55,17 @@ class HeadHunterAPI(AbstractAPI):
 
         return vacancy_list
 
-    def get_params(self) -> dict:
+    def __get_params(self) -> dict:
         """
         Подготовка параметров для запроса вакансий с hh.ru
         :return: Параметры для запроса
         """
+        params = {
+            "text": self.search_query,
+            "per_page": "100",
+            "only_with_salary": self.only_with_salary
+        }
+
         current_file_path = os.path.abspath(__file__)
         parent_dir_path = os.path.dirname(os.path.dirname(current_file_path))
         file_path = os.path.join(parent_dir_path, "data", "areas.json")
@@ -74,12 +80,9 @@ class HeadHunterAPI(AbstractAPI):
                     if self.search_area in k:
                         area = v
 
-        params = {
-            "text": self.search_query,
-            "per_page": "100",
-            "only_with_salary": self.only_with_salary,
-            "salary": self.salary,
-            "area": area
-        }
+        if self.salary:
+            params["salary"] = self.salary
+        if area:
+            params["area"] = area
 
         return params
