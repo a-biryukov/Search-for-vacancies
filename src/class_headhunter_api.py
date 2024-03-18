@@ -13,7 +13,7 @@ class HeadHunterAPI(AbstractAPI):
     search_area: str
     only_with_salary: str
 
-    def __init__(self, search_query: str, salary: str, search_area: str, only_with_salary: str):
+    def __init__(self, search_query: str, salary: str, search_area: str, only_with_salary: str) -> None:
         """
         Метод для инициализации экземпляра класса. Задаем значения атрибутам экземпляра.
         :param search_query: Поисковой запрос (название вакансии)
@@ -22,7 +22,7 @@ class HeadHunterAPI(AbstractAPI):
         :param only_with_salary: Запрос вакансий только с зарплатой (true or false)
         """
         self.search_query = search_query
-        self.salary = salary
+        self.salary = salary.split("-")[0].strip() if "-" in salary else salary.split(" ")[0].strip()
         self.search_area = search_area.title()
         if only_with_salary.lower() == "да":
             self.only_with_salary = "false"
@@ -38,15 +38,14 @@ class HeadHunterAPI(AbstractAPI):
         params = self.__get_params()
 
         url = "https://api.hh.ru/vacancies"
-
         response = requests.get(url, params)
-
         data = response.json()
 
         vacancy_list = data.get("items")
+        if not vacancy_list:
+            raise AttributeError("\nПо вашему запросу вакансии не найдены.")
 
         pages = data.get("pages")
-
         if pages is not None:
             for num in range(1, pages):
                 params["page"] = num
@@ -75,14 +74,19 @@ class HeadHunterAPI(AbstractAPI):
 
             if areas.get(self.search_area):
                 area = areas.get(self.search_area)
-            else:
+            elif not areas.get(self.search_area):
                 for k, v in areas.items():
                     if self.search_area in k:
                         area = v
+                    else:
+                        area = None
+
+        if area:
+            params["area"] = area
+        else:
+            print(f"Область поиска {self.search_area} не найдена. Поиск будет производиться по всем регионам.")
 
         if self.salary:
             params["salary"] = self.salary
-        if area:
-            params["area"] = area
 
         return params
