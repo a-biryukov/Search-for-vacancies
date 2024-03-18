@@ -7,6 +7,7 @@ from src.abstract_classes import AbstractSaver
 class JSONSaver(AbstractSaver):
     """ Класс для работы с данными в JSON файлах """
     def __init__(self):
+        """ Метод для инициализации экземпляра класса. Задаем значения атрибутам экземпляра. """
         self.file_path = self.get_file_path()
 
     def add_vacancy(self, vacancy_object) -> None:
