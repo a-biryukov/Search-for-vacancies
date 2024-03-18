@@ -25,7 +25,7 @@ class Vacancy:
         """
         self.name = name
         self.url = url
-        self.salary = salary
+        self.__salary = salary
         self.salary_indicated = bool(salary)
         self.snippet = snippet
         self.publication_date = publication_date
@@ -39,12 +39,12 @@ class Vacancy:
         """
         salary_list = []
         if self.salary_indicated:
-            if self.salary.get("from"):
-                salary_from = self.salary.get("from")
+            if self.__salary.get("from"):
+                salary_from = self.__salary.get("from")
                 salary_from_str = f"от {salary_from}"
                 salary_list.append(salary_from_str)
-            if self.salary.get("to"):
-                salary_to = self.salary.get("to")
+            if self.__salary.get("to"):
+                salary_to = self.__salary.get("to")
                 salary_to_str = f"до {salary_to}"
                 salary_list.append(salary_to_str)
         else:
@@ -133,6 +133,67 @@ class Vacancy:
 
         return vacancy_objects
 
+    @staticmethod
+    def filtered_vacancies(vacancy_objects: list, filter_words: list) -> list:
+        """
+        Фильтрует вакансии по ключевым словам
+        :param vacancy_objects: Список с объектами вакансий
+        :param filter_words: Список с ключевыми словами
+        :return: Отфильтрованный список с объектами вакансий
+        """
+        filtered_vacancies = []
+        for vacancy in vacancy_objects:
+            vacancy_words = []
+            vacancy_words.extend(vacancy.name.split())
+            for item in ["requirement", "responsibility"]:
+                try:
+                    vacancy_words.extend(vacancy.snippet.get(item).split())
+                except AttributeError:
+                    continue
+
+            for word in filter_words:
+                if word in vacancy_words:
+                    filtered_vacancies.append(vacancy)
+
+        return filtered_vacancies
+
+    @staticmethod
+    def sort_vacancies_by_salary(filtered_vacancies: list, salary: str):
+        sorted_vacancies = []
+        vacancies_without_salary = []
+        vacancies_salary_to = []
+        vacancies_salary_from = []
+
+        salary_list = salary.split("-")[0].strip() if "-" in salary else salary.split(" ")[0].strip()
+
+        for vacancy in filtered_vacancies:
+            if not vacancy.salary_indicated:
+                vacancies_without_salary.append(vacancy)
+            elif vacancy.salary.get("to"):
+                if len(salary_list) == 2:
+                    if vacancy.salary.get("to") <= int(salary_list[1]):
+                        vacancies_salary_to.append(vacancy)
+                else:
+                    vacancies_salary_to.append(vacancy)
+            elif vacancy.salary.get("from") and vacancy.salary.get("from") >= int(salary_list[0]):
+                vacancies_salary_from.append(vacancy)
+
+        vacancies_to = sorted(vacancies_salary_to, key=lambda x: x.salary.get("to"), reverse=True)
+        vacancies_from = sorted(vacancies_salary_from, key=lambda x: x.salary.get("from"), reverse=True)
+        sorted_vacancies.extend(vacancies_to)
+        sorted_vacancies.extend(vacancies_from)
+        sorted_vacancies.extend(vacancies_without_salary)
+
+        return sorted_vacancies
+
+    @staticmethod
+    def get_top_vacancies(sorted_vacancies: list, top_n: int):
+        pass
+
+    @property
+    def salary(self):
+        return self.__salary
+
     def __get_salary_for_comparison(self, other) -> tuple:
         """
         Получение зарплаты из объектов класса Vacancy для сравнения
@@ -144,20 +205,18 @@ class Vacancy:
         if not other.salary_indicated:
             raise ValueError("В вакансии справа не указана зарплата")
 
-        self_salary_set = set(self.salary)
+        self_salary_set = set(self.__salary)
         other_salary_set = set(other.salary)
         intersection = list(self_salary_set & other_salary_set)
 
         if len(intersection) == 1:
-            self_salary = self.salary.get(intersection[0])
+            self_salary = self.__salary.get(intersection[0])
             other_salary = other.salary.get(intersection[0])
             return self_salary, other_salary
-
         elif len(intersection) == 2:
-            self_salary = (self.salary.get("to") + self.salary.get("from")) // 2
+            self_salary = (self.__salary.get("to") + self.__salary.get("from")) // 2
             other_salary = (other.salary.get("to") + other.salary.get("from")) // 2
             return self_salary, other_salary
-
         elif len(intersection) == 0:
             raise ValueError("Вакансии нельзя сравнить, в одной указано зарплата 'от', а в другой 'до'")
 
