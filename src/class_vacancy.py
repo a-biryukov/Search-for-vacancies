@@ -1,7 +1,9 @@
 from datetime import date
 
+from src.abstract_classes import AbstractVacancy
 
-class Vacancy:
+
+class Vacancy(AbstractVacancy):
     """ Класс для представления вакансий """
     name: str
     url: str
@@ -167,7 +169,7 @@ class Vacancy:
         return filtered_vacancies
 
     @staticmethod
-    def sort_vacancies_by_salary(vacancy_objects: list, salary_list: list):
+    def sort_vacancies_by_salary(vacancy_objects: list, salary_list: list) -> list:
         """
         Сортирует вакансии по зарплате
         :param vacancy_objects: Список с объектами вакансий
@@ -222,6 +224,7 @@ class Vacancy:
 
     @property
     def salary(self):
+        """ Геттер для получения зарплаты """
         return self.__salary
 
     def __get_salary_for_comparison(self, other) -> tuple:

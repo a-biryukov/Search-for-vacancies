@@ -11,7 +11,7 @@ class JSONSaver(AbstractSaver):
         self.file_path = self.get_file_path()
 
     def add_vacancy(self, vacancy_object) -> None:
-        """ Сохраняет вакансию в JSON файл"""
+        """ Сохраняет вакансию в JSON файл """
 
         if os.path.isfile(self.file_path) and os.stat(self.file_path).st_size != 0:
             data = self.load_file()
@@ -49,7 +49,7 @@ class JSONSaver(AbstractSaver):
             json.dump(data, file, indent=2)
 
     @staticmethod
-    def get_file_path():
+    def get_file_path() -> str:
         """
         :return: Путь к файлу vacancies.json
         """

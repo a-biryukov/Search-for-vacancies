@@ -17,7 +17,7 @@ class HeadHunterAPI(AbstractAPI):
         """
         Метод для инициализации экземпляра класса. Задаем значения атрибутам экземпляра.
         :param search_query: Поисковой запрос (название вакансии)
-        :param salary: Желаемая зарплата
+        :param salary_list: Желаемая зарплата
         :param search_area: Область поиска (Страна, область или город)
         :param only_with_salary: Запрос вакансий только с зарплатой (true or false)
         """
