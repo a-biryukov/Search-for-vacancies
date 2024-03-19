@@ -131,6 +131,9 @@ class Vacancy:
             vacancy_object = cls(name, url, salary, snippet, publication_date, area)
             vacancy_objects.append(vacancy_object)
 
+        if not vacancy_objects:
+            raise AttributeError("\nПо вашему запросу вакансии не найдены.")
+
         return vacancy_objects
 
     @staticmethod
@@ -141,6 +144,9 @@ class Vacancy:
         :param filter_words: Список с ключевыми словами
         :return: Отфильтрованный список с объектами вакансий
         """
+        if len(filter_words) == 0:
+            return vacancy_objects
+
         filtered_vacancies = []
         for vacancy in vacancy_objects:
             vacancy_words = []
@@ -155,40 +161,64 @@ class Vacancy:
                 if word in vacancy_words:
                     filtered_vacancies.append(vacancy)
 
+        if not filtered_vacancies:
+            raise AttributeError("\nПо вашему запросу вакансии не найдены.")
+
         return filtered_vacancies
 
     @staticmethod
-    def sort_vacancies_by_salary(filtered_vacancies: list, salary: str):
+    def sort_vacancies_by_salary(vacancy_objects: list, salary_list: list):
+        """
+        Сортирует вакансии по зарплате
+        :param vacancy_objects: Список с объектами вакансий
+        :param salary_list: Строка с желаемой зарплатой
+        :return: Отсортированный по зарплате список с объектами вакансий
+        """
         sorted_vacancies = []
         vacancies_without_salary = []
         vacancies_salary_to = []
         vacancies_salary_from = []
 
-        salary_list = salary.split("-")[0].strip() if "-" in salary else salary.split(" ")[0].strip()
-
-        for vacancy in filtered_vacancies:
+        for vacancy in vacancy_objects:
             if not vacancy.salary_indicated:
                 vacancies_without_salary.append(vacancy)
             elif vacancy.salary.get("to"):
                 if len(salary_list) == 2:
-                    if vacancy.salary.get("to") <= int(salary_list[1]):
+                    if vacancy.salary.get("to") <= int(salary_list[1].strip()):
                         vacancies_salary_to.append(vacancy)
                 else:
                     vacancies_salary_to.append(vacancy)
-            elif vacancy.salary.get("from") and vacancy.salary.get("from") >= int(salary_list[0]):
+            elif vacancy.salary.get("from") and vacancy.salary.get("from") >= int(salary_list[0].strip()):
                 vacancies_salary_from.append(vacancy)
 
         vacancies_to = sorted(vacancies_salary_to, key=lambda x: x.salary.get("to"), reverse=True)
         vacancies_from = sorted(vacancies_salary_from, key=lambda x: x.salary.get("from"), reverse=True)
+
         sorted_vacancies.extend(vacancies_to)
         sorted_vacancies.extend(vacancies_from)
         sorted_vacancies.extend(vacancies_without_salary)
 
+        if not sorted_vacancies:
+            raise AttributeError("\nПо вашему запросу вакансии не найдены.")
+
         return sorted_vacancies
 
     @staticmethod
-    def get_top_vacancies(sorted_vacancies: list, top_n: int):
-        pass
+    def get_top_vacancies(vacancy_objects: list, top_n: str):
+        """
+        Получаем нужное количество вакансий в списке
+        :param vacancy_objects: Список с объектами вакансий
+        :param top_n: Строка с количеством вакансий
+        :return: Список с нужным количеством вакансий
+        """
+        if top_n != "":
+            top_n_int = int(top_n)
+            if len(vacancy_objects) >= top_n_int:
+                return vacancy_objects[:top_n_int]
+            else:
+                return vacancy_objects
+        else:
+            return vacancy_objects
 
     @property
     def salary(self):

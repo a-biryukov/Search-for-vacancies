@@ -9,11 +9,11 @@ class HeadHunterAPI(AbstractAPI):
     """ Класс для работы с API """
 
     search_query: str
-    salary: str
+    salary_list: list
     search_area: str
     only_with_salary: str
 
-    def __init__(self, search_query: str, salary: str, search_area: str, only_with_salary: str) -> None:
+    def __init__(self, search_query: str, salary_list: list, search_area: str, only_with_salary: str) -> None:
         """
         Метод для инициализации экземпляра класса. Задаем значения атрибутам экземпляра.
         :param search_query: Поисковой запрос (название вакансии)
@@ -22,7 +22,7 @@ class HeadHunterAPI(AbstractAPI):
         :param only_with_salary: Запрос вакансий только с зарплатой (true or false)
         """
         self.search_query = search_query
-        self.salary = salary.split("-")[0].strip() if "-" in salary else salary.split(" ")[0].strip()
+        self.salary = salary_list
         self.search_area = search_area.title()
         if only_with_salary.lower() == "да":
             self.only_with_salary = "false"
@@ -87,6 +87,6 @@ class HeadHunterAPI(AbstractAPI):
             print(f"Область поиска {self.search_area} не найдена. Поиск будет производиться по всем регионам.")
 
         if self.salary:
-            params["salary"] = self.salary
+            params["salary"] = self.salary[0].strip()
 
         return params
