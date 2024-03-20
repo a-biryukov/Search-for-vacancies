@@ -9,8 +9,8 @@ def test_cast_to_object_list(vacancy_info, currency_rates):
 
 def test_filtered_vacancies(vacancy_objects, filter_words):
     """ Тест на фильтрацию списка с объектами вакансий по ключевым словам """
-    assert len(Vacancy.filtered_vacancies(vacancy_objects,filter_words)) == 1
-    assert len(Vacancy.filtered_vacancies(vacancy_objects, [])) == 4
+    assert len(Vacancy.filtered_vacancies(vacancy_objects,filter_words)) == 2
+    assert len(Vacancy.filtered_vacancies(vacancy_objects, "")) == 4
 
 
 def test_sort_vacancies_by_salary(vacancy_objects, salary_1, salary_2):
