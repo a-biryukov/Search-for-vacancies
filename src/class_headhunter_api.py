@@ -38,24 +38,39 @@ class HeadHunterAPI(AbstractAPI):
         params = self.__get_params()
 
         url = "https://api.hh.ru/vacancies"
-        response = requests.get(url, params)
-        data = response.json()
+        try:
+            response = requests.get(url, params)
+        except requests.ConnectionError as e:
+            print("Ошибка подключения:", e)
+        except requests.Timeout as e:
+            print("Ошибка тайм-аута:", e)
+        except requests.RequestException as e:
+            print("Ошибка запроса:", e)
+        else:
+            data = response.json()
 
-        vacancy_list = data.get("items")
-        if not vacancy_list:
-            raise AttributeError("\nПо вашему запросу вакансии не найдены.")
+            vacancy_list = data.get("items")
+            if not vacancy_list:
+                raise AttributeError("\nПо вашему запросу вакансии не найдены.")
 
-        pages = data.get("pages")
-        if pages is not None:
-            for num in range(1, pages):
-                params["page"] = num
-                response = requests.get(url, params).json()
-                try:
-                    vacancy_list.extend(response.get("items"))
-                except TypeError:
-                    continue
+            pages = data.get("pages")
+            if pages is not None:
+                for num in range(1, pages):
+                    params["page"] = num
+                    try:
+                        response = requests.get(url, params).json()
+                    except requests.ConnectionError as e:
+                        print("Ошибка подключения:", e)
+                    except requests.Timeout as e:
+                        print("Ошибка тайм-аута:", e)
+                    except requests.RequestException as e:
+                        print("Ошибка запроса:", e)
+                    try:
+                        vacancy_list.extend(response.get("items"))
+                    except TypeError:
+                        continue
 
-        return vacancy_list
+            return vacancy_list
 
     def __get_params(self) -> dict:
         """
