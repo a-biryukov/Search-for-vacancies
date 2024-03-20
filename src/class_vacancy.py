@@ -41,6 +41,7 @@ class Vacancy(AbstractVacancy):
         """
         salary_list = []
         if self.salary_indicated:
+            currency = "рублей"
             if self.salary.get("from"):
                 salary_from = self.salary.get("from")
                 salary_from_str = f"от {salary_from}"
@@ -51,14 +52,14 @@ class Vacancy(AbstractVacancy):
                 salary_list.append(salary_to_str)
         else:
             salary_list.append("не указана")
-
+            currency = ""
         salary = " ".join(salary_list)
 
         return f"""Вакансия: {self.name}
 {self.area}
 Требования: {self.snippet.get("requirement")}
 Обязанности: {self.snippet.get("responsibility")}
-Зарплата {salary}
+Зарплата {salary} {currency}
 Дата публикации: {self.the_date}
 Ссылка на вакансию: {self.url}
 """
@@ -199,7 +200,8 @@ class Vacancy(AbstractVacancy):
                 if not vacancy.salary_indicated:
                     vacancies_without_salary.append(vacancy)
                 elif vacancy.salary.get("to") and vacancy.salary.get("from"):
-                    if vacancy.salary.get("from") >= int(salary_list[0].strip()) and vacancy.salary.get("to") <= int(salary_list[1].strip()):
+                    if (vacancy.salary.get("from") >= int(salary_list[0].strip())
+                            and vacancy.salary.get("to") <= int(salary_list[1].strip())):
                         vacancies_salary_from_to.append(vacancy)
                 elif vacancy.salary.get("to"):
                     if vacancy.salary.get("to") and vacancy.salary.get("to") <= int(salary_list[1].strip()):

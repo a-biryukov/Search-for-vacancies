@@ -74,15 +74,12 @@ SALARY_1 = ["250000", "460000"]
 
 SALARY_2 = ["400000"]
 
-TOP_N_1 = "2"
-
-TOP_N_2 = ""
 
 VACANCY_STR = """Вакансия: Продуктовый аналитик
 Москва
 Требования: не указаны
 Обязанности: не указаны
-Зарплата от 250000 до 350000
+Зарплата от 250000 до 350000 рублей
 Дата публикации: 18.03.2024
 Ссылка на вакансию: https://hh.ru/vacancy/94619501
 """
@@ -116,16 +113,6 @@ def salary_1():
 @pytest.fixture
 def salary_2():
     return SALARY_2
-
-
-@pytest.fixture
-def top_n_1():
-    return TOP_N_1
-
-
-@pytest.fixture
-def top_n_2():
-    return TOP_N_2
 
 
 @pytest.fixture
