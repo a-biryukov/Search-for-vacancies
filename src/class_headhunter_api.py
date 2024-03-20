@@ -50,7 +50,10 @@ class HeadHunterAPI(AbstractAPI):
             for num in range(1, pages):
                 params["page"] = num
                 response = requests.get(url, params).json()
-                vacancy_list.extend(response.get("items"))
+                try:
+                    vacancy_list.extend(response.get("items"))
+                except TypeError:
+                    continue
 
         return vacancy_list
 

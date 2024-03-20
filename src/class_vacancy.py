@@ -10,27 +10,27 @@ class Vacancy(AbstractVacancy):
     salary: dict
     salary_indicated: bool
     snippet: dict
-    publication_date: str
+    the_date: str
     area: str
 
     number_of_vacancies = 0
 
-    def __init__(self, name: str, url: str,  salary: dict, snippet: dict, publication_date: str, area: str) -> None:
+    def __init__(self, name: str, url: str,  salary: dict, snippet: dict, the_date: str, area: str) -> None:
         """
         Метод для инициализации экземпляра класса. Задаем значения атрибутам экземпляра.
         :param name: Название вакансии
         :param url: Ссылка на вакансию
         :param salary: Зарплата
         :param snippet: Требования и обязанности
-        :param publication_date: Дата публикации
+        :param the_date: Дата публикации
         :param area: Страна, область или город
         """
         self.name = name
         self.url = url
-        self.__salary = salary
+        self.salary = salary
         self.salary_indicated = bool(salary)
         self.snippet = snippet
-        self.publication_date = publication_date
+        self.the_date = the_date
         self.area = area
 
         Vacancy.number_of_vacancies += 1
@@ -41,12 +41,12 @@ class Vacancy(AbstractVacancy):
         """
         salary_list = []
         if self.salary_indicated:
-            if self.__salary.get("from"):
-                salary_from = self.__salary.get("from")
+            if self.salary.get("from"):
+                salary_from = self.salary.get("from")
                 salary_from_str = f"от {salary_from}"
                 salary_list.append(salary_from_str)
-            if self.__salary.get("to"):
-                salary_to = self.__salary.get("to")
+            if self.salary.get("to"):
+                salary_to = self.salary.get("to")
                 salary_to_str = f"до {salary_to}"
                 salary_list.append(salary_to_str)
         else:
@@ -59,7 +59,7 @@ class Vacancy(AbstractVacancy):
 Требования: {self.snippet.get("requirement")}
 Обязанности: {self.snippet.get("responsibility")}
 Зарплата {salary}
-Дата публикации {self.publication_date}
+Дата публикации: {self.the_date}
 Ссылка на вакансию: {self.url}
 """
 
@@ -117,10 +117,23 @@ class Vacancy(AbstractVacancy):
 
         for vacancy in vacancy_list:
             name = vacancy.get("name")
-            url = vacancy.get("alternate_url")
-            the_date = date.fromisoformat(vacancy.get("published_at").split("T")[0])
-            publication_date = date.strftime(the_date, "%d.%m.%Y")
-            area = vacancy.get("area").get("name")
+
+            if vacancy.get("alternate_url"):
+                url = vacancy.get("alternate_url")
+            else:
+                url = vacancy.get("url")
+
+            if vacancy.get("published_at"):
+                published_at = date.fromisoformat(vacancy.get("published_at").split("T")[0])
+                the_date = date.strftime(published_at, "%d.%m.%Y")
+            else:
+                the_date = vacancy.get("the_date")
+
+            if vacancy.get("area") and type(vacancy.get("area")) == str:
+                area = vacancy.get("area")
+            else:
+                area = vacancy.get("area").get("name")
+
             snippet = vacancy.get("snippet")
             for item in ["requirement", "responsibility"]:
                 try:
@@ -130,7 +143,7 @@ class Vacancy(AbstractVacancy):
 
             salary = cls.__get_salary_info(vacancy, currency_rates)
 
-            vacancy_object = cls(name, url, salary, snippet, publication_date, area)
+            vacancy_object = cls(name, url, salary, snippet, the_date, area)
             vacancy_objects.append(vacancy_object)
 
         if not vacancy_objects:
@@ -159,9 +172,8 @@ class Vacancy(AbstractVacancy):
                 except AttributeError:
                     continue
 
-            for word in filter_words:
-                if word in vacancy_words:
-                    filtered_vacancies.append(vacancy)
+            if set(vacancy_words) & set(filter_words):
+                filtered_vacancies.append(vacancy)
 
         if not filtered_vacancies:
             raise AttributeError("\nПо вашему запросу вакансии не найдены.")
@@ -177,25 +189,39 @@ class Vacancy(AbstractVacancy):
         :return: Отсортированный по зарплате список с объектами вакансий
         """
         sorted_vacancies = []
-        vacancies_without_salary = []
+        vacancies_salary_from_to = []
         vacancies_salary_to = []
         vacancies_salary_from = []
+        vacancies_without_salary = []
 
         for vacancy in vacancy_objects:
-            if not vacancy.salary_indicated:
-                vacancies_without_salary.append(vacancy)
-            elif vacancy.salary.get("to"):
-                if len(salary_list) == 2:
-                    if vacancy.salary.get("to") <= int(salary_list[1].strip()):
+            if len(salary_list) == 2:
+                if not vacancy.salary_indicated:
+                    vacancies_without_salary.append(vacancy)
+                elif vacancy.salary.get("to") and vacancy.salary.get("from"):
+                    if vacancy.salary.get("from") >= int(salary_list[0].strip()) and vacancy.salary.get("to") <= int(salary_list[1].strip()):
+                        vacancies_salary_from_to.append(vacancy)
+                elif vacancy.salary.get("to"):
+                    if vacancy.salary.get("to") and vacancy.salary.get("to") <= int(salary_list[1].strip()):
                         vacancies_salary_to.append(vacancy)
-                else:
-                    vacancies_salary_to.append(vacancy)
-            elif vacancy.salary.get("from") and vacancy.salary.get("from") >= int(salary_list[0].strip()):
-                vacancies_salary_from.append(vacancy)
+                elif vacancy.salary.get("from"):
+                    if vacancy.salary.get("from") and vacancy.salary.get("from") >= int(salary_list[0].strip()):
+                        vacancies_salary_from.append(vacancy)
+            elif len(salary_list) == 1:
+                if not vacancy.salary_indicated:
+                    vacancies_without_salary.append(vacancy)
+                elif vacancy.salary.get("from"):
+                    if vacancy.salary.get("from") and vacancy.salary.get("from") >= int(salary_list[0].strip()):
+                        vacancies_salary_from.append(vacancy)
+                elif vacancy.salary.get("to"):
+                    if vacancy.salary.get("to") and vacancy.salary.get("to") >= int(salary_list[0].strip()):
+                        vacancies_salary_to.append(vacancy)
 
+        vacancies_from_to = sorted(vacancies_salary_from_to, key=lambda x: x.salary.get("to"), reverse=True)
         vacancies_to = sorted(vacancies_salary_to, key=lambda x: x.salary.get("to"), reverse=True)
         vacancies_from = sorted(vacancies_salary_from, key=lambda x: x.salary.get("from"), reverse=True)
 
+        sorted_vacancies.extend(vacancies_from_to)
         sorted_vacancies.extend(vacancies_to)
         sorted_vacancies.extend(vacancies_from)
         sorted_vacancies.extend(vacancies_without_salary)
@@ -222,11 +248,6 @@ class Vacancy(AbstractVacancy):
         else:
             return vacancy_objects
 
-    @property
-    def salary(self):
-        """ Геттер для получения зарплаты """
-        return self.__salary
-
     def __get_salary_for_comparison(self, other) -> tuple:
         """
         Получение зарплаты из объектов класса Vacancy для сравнения
@@ -238,16 +259,16 @@ class Vacancy(AbstractVacancy):
         if not other.salary_indicated:
             raise ValueError("В вакансии справа не указана зарплата")
 
-        self_salary_set = set(self.__salary)
+        self_salary_set = set(self.salary)
         other_salary_set = set(other.salary)
         intersection = list(self_salary_set & other_salary_set)
 
         if len(intersection) == 1:
-            self_salary = self.__salary.get(intersection[0])
+            self_salary = self.salary.get(intersection[0])
             other_salary = other.salary.get(intersection[0])
             return self_salary, other_salary
         elif len(intersection) == 2:
-            self_salary = (self.__salary.get("to") + self.__salary.get("from")) // 2
+            self_salary = (self.salary.get("to") + self.salary.get("from")) // 2
             other_salary = (other.salary.get("to") + other.salary.get("from")) // 2
             return self_salary, other_salary
         elif len(intersection) == 0:
@@ -278,16 +299,23 @@ class Vacancy(AbstractVacancy):
         if salary_dict:
             salary = {}
             currency_rate = currency_rates.get(salary_dict.get("currency"))
-
-            if salary_dict.get("currency") != "RUR" and currency_rate:
-                if salary_dict.get("from"):
-                    salary_from = salary_dict.get("from") * currency_rate
-                    salary["from"] = round(salary_from)
-                if salary_dict.get("to"):
-                    salary_to = salary_dict.get("to") * currency_rate
-                    salary["to"] = round(salary_to)
-            elif salary_dict.get("currency") != "RUR" and not currency_rate:
-                salary = None
+            if salary_dict.get("currency"):
+                if salary_dict.get("currency") != "RUR" and currency_rate:
+                    if salary_dict.get("from"):
+                        salary_from = salary_dict.get("from") * currency_rate
+                        salary["from"] = round(salary_from)
+                    if salary_dict.get("to"):
+                        salary_to = salary_dict.get("to") * currency_rate
+                        salary["to"] = round(salary_to)
+                elif salary_dict.get("currency") != "RUR" and not currency_rate:
+                    salary = None
+                else:
+                    if salary_dict.get("from"):
+                        salary_from = salary_dict.get("from")
+                        salary["from"] = salary_from
+                    if salary_dict.get("to"):
+                        salary_to = salary_dict.get("to")
+                        salary["to"] = salary_to
             else:
                 if salary_dict.get("from"):
                     salary_from = salary_dict.get("from")

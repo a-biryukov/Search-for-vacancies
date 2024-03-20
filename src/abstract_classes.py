@@ -87,9 +87,3 @@ class AbstractVacancy:
     def get_top_vacancies(vacancy_objects: list, top_n: str):
         """ Получаем нужное количество вакансий в списке """
         pass
-
-    @property
-    @abstractmethod
-    def salary(self):
-        """ Геттер для получения зарплаты """
-        pass
