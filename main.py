@@ -16,6 +16,7 @@ def user_interaction():
             if len(salary_list) == 2:
                 if not salary_list[0].strip().isdigit() or not salary_list[1].strip().isdigit():
                     print("Вводить можно только цифры. В качестве разделителя можно использовать '-' или пробел")
+                    print("Пример: 10000 или 10000 - 50000")
                     print("Попробуйте еще раз")
                     continue
                 else:
@@ -23,14 +24,20 @@ def user_interaction():
             elif len(salary_list) == 1:
                 if not salary_list[0].strip().isdigit():
                     print("Вводить можно только цифры. В качестве разделителя можно использовать '-' или пробел")
+                    print("Пример: 10000 или 10000 - 50000")
                     print("Попробуйте еще раз")
                     continue
                 else:
                     break
+            else:
+                print("Вводить можно только цифры. В качестве разделителя можно использовать '-' или пробел")
+                print("Пример: 10000 или 10000 - 50000")
+                print("Попробуйте еще раз")
+                continue
 
         only_with_salary = input("Показывать вакансии в которых не указана зарплата? (да/нет): ").strip()
 
-        filter_words = input("Введите ключевые слова для фильтрации вакансий: ").split()
+        filter_words = input("Можете указать через пробел ключевые слова для фильтрации вакансий: ").split()
 
         while True:
             top_n = input("Введите количество вакансий для вывода в топ N: ").strip()
@@ -63,17 +70,15 @@ def user_interaction():
             print("Попробуйте ещё раз.\n")
             continue
         else:
-            save = JSONSaver()
-            if len(top_vacancies) < int(top_n):
-                print(f"\n Найдено вакансий: {len(top_vacancies)}\n")
-            else:
-                print("\n")
+            json_save = JSONSaver()
+
+            print(f"\nПо вашему запросу найдено вакансий: {len(top_vacancies)}\n")
 
             for vacancy in top_vacancies:
-                save.add_vacancy(vacancy)
+                json_save.add_vacancy(vacancy)
                 print(vacancy)
 
-            new_search = input("\n Желаете сделать новый запрос? (да/нет): ").strip()
+            new_search = input("Желаете сделать новый запрос? (да/нет): \n").strip()
             if new_search == "да":
                 continue
             else:
