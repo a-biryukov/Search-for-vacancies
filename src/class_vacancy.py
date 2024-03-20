@@ -153,7 +153,7 @@ class Vacancy(AbstractVacancy):
         return vacancy_objects
 
     @staticmethod
-    def filtered_vacancies(vacancy_objects: list, filter_words: list) -> list:
+    def filtered_vacancies(vacancy_objects: list, filter_words: str) -> list:
         """
         Фильтрует вакансии по ключевым словам
         :param vacancy_objects: Список с объектами вакансий
@@ -163,17 +163,19 @@ class Vacancy(AbstractVacancy):
         if len(filter_words) == 0:
             return vacancy_objects
 
+        filter_words_list = [word.strip().lower() for word in filter_words.split()]
+
         filtered_vacancies = []
         for vacancy in vacancy_objects:
             vacancy_words = []
-            vacancy_words.extend(vacancy.name.split())
+            vacancy_words.extend([word.strip().lower() for word in vacancy.name.split()])
             for item in ["requirement", "responsibility"]:
                 try:
-                    vacancy_words.extend(vacancy.snippet.get(item).split())
+                    vacancy_words.extend([word.strip().lower() for word in vacancy.snippet.get(item).split()])
                 except AttributeError:
                     continue
 
-            if set(vacancy_words) & set(filter_words):
+            if set(vacancy_words) & set(filter_words_list):
                 filtered_vacancies.append(vacancy)
 
         if not filtered_vacancies:
