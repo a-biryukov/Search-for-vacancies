@@ -35,7 +35,7 @@ class Vacancy(AbstractVacancy):
 
         Vacancy.number_of_vacancies += 1
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         :return: Строка с информацией о вакансии
         """
@@ -234,7 +234,7 @@ class Vacancy(AbstractVacancy):
         return sorted_vacancies
 
     @staticmethod
-    def get_top_vacancies(vacancy_objects: list, top_n: str):
+    def get_top_vacancies(vacancy_objects: list, top_n: str) -> list:
         """
         Получаем нужное количество вакансий в списке
         :param vacancy_objects: Список с объектами вакансий

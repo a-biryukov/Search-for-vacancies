@@ -5,7 +5,7 @@ import requests
 class ExchangeRates:
     """ Класс для получения курсов валют """
 
-    def get_exchange_rates(self):
+    def get_exchange_rates(self) -> dict:
         """
         Фильтрует данные, отбирает код валюты и курс
         :return: Словарь с курсами валют
@@ -30,7 +30,7 @@ class ExchangeRates:
         return exchange_rates
 
     @staticmethod
-    def __get_data():
+    def __get_data() -> list:
         """ Получает данные с сайта ЦБ РФ """
 
         url = "https://cbr.ru/currency_base/daily/"
