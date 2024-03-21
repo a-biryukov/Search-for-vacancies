@@ -42,7 +42,7 @@ class AbstractSaver(ABC):
         pass
 
 
-class AbstractVacancy:
+class AbstractVacancy(ABC):
 
     @abstractmethod
     def __str__(self):
